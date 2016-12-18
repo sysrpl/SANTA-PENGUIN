@@ -1,0 +1,93 @@
+<santa xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:noNamespaceSchemaLocation="santa.xsd">
+	<replicates>1</replicates>
+
+	<simulation>
+		<genome>
+			<length>1218</length>
+			<sequences>
+				GAAGAAGAGGTAGTAATTAGATCTGAAAATTTCACGGACAATGCTAAAACCATAATAGTACAGCTGAAGGAGTCTGTAGTAATTAATTGTACAAGACCCAATAACAATACAAGAAAAAGTATACAGGTAGGACCAGGGAAAGCAATTTATACAACAGGAGAAATAATAGGAGATTTAAGACAAGCACATTGTAACCTTAGTAGAGCAGAATGGAATAACACTTTAAAACAGATAGTTAAGAAATTAAGAGAACAATTTGGGAATAAAACAATAGTCTTTAATCAATCCTCAGGAGGGGACCCAGAAATTGTAATGCACAGTTTGAATTGTAGAGGGGAATTTTTCTACTGTAATTCAACACAACTGTTTAATAGTACTTGGGATAATAGTACTTTGAATAATGTTACTGAAGGGTCAAATAGCACTGAAGAGAATATCACACTCCCATGCAGAATAAAACAAATTATAAACATGTGGCAGGAAGTAGGAAAAGCAATGTATGCCCCTCCCATCAGAGGACAAATTAGATGTTCATCAAATATTACAGGGCTGCTATTAACAAGAGATGGTGGTAAGGACACGAGCAATACCGAAATCTTCAGACCTGGAGAAGAAGAGGTAGTAATTAGATCTGAAAATTTCACGGACAATGCTAAAACCATAATAGTACAGCTGAAGGAGTCTGTAGTAATTAATTGTACAAGACCCAATAACAATACAAGAAAAAGTATACAGGTAGGACCAGGGAAAGCAATTTATACAACAGGAGAAATAATAGGAGATTTAAGACAAGCACATTGTAACCTTAGTAGAGCAGAATGGAATAACACTTTAAAACAGATAGTTAAGAAATTAAGAGAACAATTTGGGAATAAAACAATAGTCTTTAATCAATCCTCAGGAGGGGACCCAGAAATTGTAATGCACAGTTTGAATTGTAGAGGGGAATTTTTCTACTGTAATTCAACACAACTGTTTAATAGTACTTGGGATAATAGTACTTTGAATAATGTTACTGAAGGGTCAAATAGCACTGAAGAGAATATCACACTCCCATGCAGAATAAAACAAATTATAAACATGTGGCAGGAAGTAGGAAAAGCAATGTATGCCCCTCCCATCAGAGGACAAATTAGATGTTCATCAAATATTACAGGGCTGCTATTAACAAGAGATGGTGGTAAGGACACGAGCAATACCGAAATCTTCAGACCTGGA
+			</sequences>
+			<feature>
+				<name>CDS</name>
+				<type>aminoAcid</type>
+				<coordinates>1-1218</coordinates>
+			</feature>
+		</genome>
+
+		<population>
+			<populationSize>10000</populationSize>
+
+			<inoculum>all</inoculum>
+		</population>
+
+		<fitnessFunction>
+			<purifyingFitness>
+				<feature>CDS</feature>
+				<sites>6-203</sites>
+				<rank>
+					<order>observed</order>
+					<breakTies>random</breakTies>
+                </rank>
+				<fitness>
+					<values>1 0.9 0.8 0.7 0.6 0.5 0.4 0.3 0.2 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1</values>
+				</fitness>
+			</purifyingFitness>
+			<purifyingFitness>
+				<feature>CDS</feature>
+				<sites>1-5</sites>
+				<rank>
+					<order>observed</order>
+ 					<breakTies>random</breakTies>
+				</rank>
+				<fitness>
+					<values>1 0.9 0.8 0.7 0.6 0.5 0.4 0.3 0.2 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1 0.1</values>
+				</fitness>
+				<fluctuate>
+					<rate>0.001</rate>
+					<fitnessLimit>0</fitnessLimit>
+				</fluctuate>
+			</purifyingFitness>
+		</fitnessFunction>
+
+		<mutator>
+			<nucleotideMutator>
+				<mutationRate>2.5E-5</mutationRate>
+				<transitionBias>2.0</transitionBias>
+			</nucleotideMutator>
+		</mutator>
+
+		<replicator>
+			<clonalReplicator/>
+		</replicator>
+
+		<epoch>
+			<generationCount>2001</generationCount>
+		</epoch>
+
+		<samplingSchedule>
+			<sampler>
+				<atFrequency>100</atFrequency>
+				<fileName>fluctuate_%r.nex</fileName>
+				<alignment>
+					<schedule>
+						1200 10
+						1400 10
+						1600 10
+						1800 10
+						2000 10
+					</schedule>
+					<format>NEXUS</format>
+					<label>fluctuate_%g_%s</label>
+				</alignment>
+			</sampler>
+			<sampler>
+				<atFrequency>1</atFrequency>
+				<fileName>fluctuate_%r.csv</fileName>
+				<statistics></statistics>
+			</sampler>
+		</samplingSchedule>
+
+	</simulation>
+
+</santa>

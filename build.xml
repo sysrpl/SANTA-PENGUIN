@@ -1,0 +1,172 @@
+
+<project xmlns:ivy="antlib:org.apache.ivy.ant"  name="SANTA" default="post-build" basedir=".">
+  <description>
+This ANT config file can be used to compile the SANTA source files and
+package the resulting classes into an executable JAR file.
+
+Before building SANTA you will need to install JAVA 8.1 and the ANT
+tool.  Installation of those tools is system-dependent and outside the
+scope of this description.
+
+To resolve dependencies, compile java files, and create a jar
+file, use the command,
+
+    $ ant
+
+The assembled jar file will be left in 'dist/santa.jar'
+
+When run for the first time, this configuration file may install Ivy
+to help manage dependencies.  If that happens you will need to run
+`ant` a second time to complete the build.
+
+To run SANTA unit tests,
+
+    $ ant test
+  </description>
+  <!-- set global properties for this build -->
+  <property name="src" location="src"/>
+  <property name="build" location="build"/>
+
+  <property name="lib" location="lib"/>
+  <property name="dist" location="dist"/>
+  <property name="build.dir"        location="build"/>
+  <property name="classes.dir"      location="${build.dir}/classes"/>
+  <property name="resources.dir"    location="${build.dir}/lib"/>
+
+  <property environment="env"/>
+
+
+  <!-- Ivy does not come bundled with ANT. The "install-ivy" task ensures it gets installed on the first ant run -->
+  <!-- http://stackoverflow.com/a/31542451/1135316 -->
+  <available classname="org.apache.ivy.Main" property="ivy.installed"/>
+  <target name="install-ivy" unless="ivy.installed">
+    <mkdir dir="${user.home}/.ant/lib"/>
+    <get dest="${user.home}/.ant/lib/ivy.jar" src="http://search.maven.org/remotecontent?filepath=org/apache/ivy/ivy/2.4.0/ivy-2.4.0.jar"/>
+    <fail message="Ivy installed  run build again"/>
+  </target>
+
+  <target name="resolve" depends="install-ivy" description="Use ivy to resolve classpaths">
+    <ivy:retrieve log="quiet"/>
+    <!-- Save the location where Ivy copied our resources       -->
+    <!-- We will use this later when compiling the java classes -->
+    <ivy:cachepath pathid="default.classpath" /> 
+  </target>
+
+    <!-- Populates a class path containing our classes and jars -->
+  <path id="classpath">
+    <fileset dir="${lib}" includes="**/*.jar"/>
+    <pathelement path="${build}"/>
+    <!-- Use the classpath defined by Ivy above -->
+    <path refid="default.classpath"/>
+  </path>
+  
+  <target name="debugging"  depends="resolve"> 
+    <property environment="ENV"/> 
+    <echo> CLASSPATH from environment = ${ENV.classpath}</echo>
+    <echo> classpath refid in ANT = ${ant.refid:classpath}</echo>
+  </target> 
+
+
+  <target name="init" depends="resolve">
+    <!-- Create the time stamp -->
+    <tstamp/>
+    <!-- Create the build directory structure used by compile -->
+    <mkdir dir="${build}"/>
+    <mkdir dir="${dist}"/>
+    <mkdir dir="${lib}"/>
+  </target>
+  
+  <target name="compile" depends="init">
+
+    <!-- Compile the java code from ${src} into ${build} -->
+    <!-- Avoid ant warning: “'includeantruntime' was not set” -->
+    <!-- includeantruntime : See http://stackoverflow.com/a/5103432/1135316 -->
+    <javac srcdir="${src}" destdir="${build}"
+	   includeantruntime="false"  target="1.8"  source="1.8" >
+      <classpath>
+	<path refid="classpath"/>
+      </classpath>
+      <compilerarg value="-Xlint:deprecation" />
+      
+      <include name="santa/**"/>
+    </javac>
+  </target>
+
+  <target name="dist" depends="compile" description="generate the distribution">
+
+    <!-- Build a "fat" jar that includes all dependencies in a single file.
+	 This will include dependencies directly into the JAR file. -->
+    <jar jarfile="${dist}/santa.jar">
+      <fileset dir="${build}" includes="**/*.class,*.properties,*.png"/>
+      <manifest>
+        <attribute name="Built-By" value="${user.name}"/>
+        <attribute name="Main-Class" value="santa.simulator.SimulatorMain"/>
+      </manifest>
+      <!-- Include all the .jar files in lib/, except for jar files containing source.  -->
+      <zipgroupfileset dir="${lib}" includes="*.jar" excludes="*source*.jar"/>
+    </jar>
+
+    <!-- Build a a minimal jar file without dependencies.
+	 This will be smaller than the "fat" jar file above, 
+	 but depends upon CLASSPATH to find its dependencies. -->
+    <jar jarfile="${dist}/santa-minimal.jar">
+      <fileset dir="${build}" includes="**/*.class,*.properties,*.png"/>
+      <manifest>
+        <attribute name="Built-By" value="${user.name}"/>
+        <attribute name="Main-Class" value="santa.simulator.SimulatorMain"/>
+      </manifest>
+    </jar>
+  </target>
+
+  <target name="post-build" depends="dist">
+    <echo level="info">
+      SANTA has been packaged into a self-contained executable JAR file in ${dist}/santa.jar
+
+      Test your build with,
+          java -jar ${dist}/santa.jar  examples/neutral.xml
+      
+      More information on configuring SANTA can be found at
+      http://github.com/santa-dev/santa-sim/wiki
+    </echo>
+  </target>
+  
+  <target name="clean">
+    <delete dir="${build}"/>
+  </target>
+
+  <target name="test" depends="dist">
+    <property name="test" location="test"/>
+    <property name="test.src" location="${test}"/>
+    <property name="test.reports" location="${test}/reports"/>
+    <property name="test.build" location="${test}/build"/>
+
+    <mkdir dir="${test.reports}"/>
+    <mkdir dir="${test.build}"/>
+
+    <javac srcdir="${test.src}" destdir="${test.build}"
+	   includeantruntime="false"  target="1.8"  source="1.8">
+      <classpath>
+	<fileset dir="${test.src}/lib" includes="**/*.jar"/>
+	<pathelement path="${test.build}"/>
+	<path refid="classpath"/>
+      </classpath>
+      <compilerarg value="-Xlint:deprecation" />
+      <include name="santa/**"/>
+    </javac>
+
+    <junit printsummary="yes" haltonfailure="yes" filtertrace="off" showoutput="true">
+      <classpath>
+	<fileset dir="${test.src}/lib" includes="**/*.jar"/>
+	<pathelement path="${test.build}"/>
+	<path refid="classpath"/>
+      </classpath>
+
+      <formatter type="plain"/>
+
+      <batchtest fork="yes" todir="${test.reports}">
+	<fileset dir="${test.src}" includes="**/*.java"/>
+      </batchtest>
+    </junit>
+  </target>
+
+</project>
